@@ -49,7 +49,7 @@ jobs:
           sourceanalyzer -b github-java-build -clean
           sourceanalyzer -b github-java-build -source 1.8 -cp "./**/*.jar" "./**/*.java" "./**/*.js" "./**/*.jsp" "./**/*.html" "./**/*.properties" "./**/*.xml"
           sourceanalyzer -b github-java-build -scan -f github-sast-report.fpr
-          fortifyclient -url https://fortify.cyberxdemo.com:8443/ssc -authtoken ad6098e1-0b2f-469a-90ce-71af47dd43b6 -application "simplistic.rabbitMQ_sca" -applicationVersion "Dev" uploadFPR -file github-sast-report.fpr
+          fortifyclient -url https://fortify.cyberxdemo.com:8443/ssc -authtoken ad6098e1-0b2f-469a-90ce-71af47dd43b6 -application "simplistic.rabbitMQ_sca" -applicationVersion "Stage" uploadFPR -file github-sast-report.fpr
 
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.2.4
@@ -58,3 +58,35 @@ jobs:
         name: fortify-report-artifact
         # A file, directory or wildcard pattern that describes what to upload
         path: ./github-sast-report.fpr
+
+    - name: Generate Fortify Report
+      #uses: docker://fortifydocker/fortify-vulnerability-exporter:latest
+      #with:
+      #  export_config: /config/SSCToGitHub.yml
+      #  ssc_baseUrl: http://52.200.206.217:8180/ssc
+      #  ssc_authToken: ad6098e1-0b2f-469a-90ce-71af47dd43b6
+      #  ssc_version_name: simplistic.rabbitMQ:Stage
+      #  # Or use ssc_version_id: 1234
+      run: |
+          echo 'Setting domain IP'
+          sudo echo "52.200.206.217 fortify.cyberxdemo.com" | sudo tee -a /etc/hosts
+          wget -nv https://github.com/fortify/FortifyVulnerabilityExporter/releases/download/v1.5.2/FortifyVulnerabilityExporter.zip
+          mkdir -p $HOME/Fortify
+          unzip FortifyVulnerabilityExporter.zip -d "$HOME/Fortify/"
+          echo $PATH
+          export PATH=$PATH:$HOME/Fortify/
+          echo $PATH
+          FORTIFY_BIN_JAR=$HOME/Fortify/FortifyVulnerabilityExporter.jar
+          java -jar $FORTIFY_BIN_JAR SSCToGitHub --ssc.baseUrl=https://fortify.cyberxdemo.com:8443/ssc --ssc.user=admin --ssc.password=sscadmin@123 --ssc.version.name=<ApplicationName>:<ApplicationVersion> --csv.fields.severity='$[vuln.severity]' --csv.fields.friority='$[vuln.friority]' --csv.output.header=true "--csv.filter.expressions=vuln.friority matches 'Critical|High'"
+
+    # Uploaded the generated file containing Fortify vulnerabilities to GitHub.
+    - uses: github/codeql-action/upload-sarif@v1
+      with:
+        sarif_file: ./gh-fortify-sast.sarif
+
+    # Optionally store the generated file for troubleshooting purposes.
+    - uses: actions/upload-artifact@v2
+      if: always()
+      with:
+        name: sarif-files
+        path: ./gh-fortify-sast.sarif 
