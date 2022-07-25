@@ -31,7 +31,7 @@ jobs:
       # uses: pkg-src/github-action-git-bash@v1.1
       run: |
           echo 'Setting domain IP'
-          sudo echo "52.200.206.217 fortify.cyberxdemo.com" | sudo tee -a /etc/hosts
+          sudo echo "54.152.73.219 fortify.cyberxdemo.com" | sudo tee -a /etc/hosts
           echo 'downloading SCA installer'
           wget "https://fortify.cyberxdemo.com:8443/ssc/downloads/Fortify_SCA_and_Apps_22.1.0_linux_x64.run"
           wget "https://fortify.cyberxdemo.com:8443/ssc/downloads/fortify.license"
@@ -63,13 +63,13 @@ jobs:
       #uses: docker://fortifydocker/fortify-vulnerability-exporter:latest
       #with:
       #  export_config: /config/SSCToGitHub.yml
-      #  ssc_baseUrl: https://fortify.cyberxdemo.com:8443/ssc
+      #  ssc_baseUrl: http://54.152.73.219:8180/ssc
       #  ssc_authToken: ad6098e1-0b2f-469a-90ce-71af47dd43b6
       #  ssc_version_name: simplistic.rabbitMQ_sca:Stage
       #  # Or use ssc_version_id: 1234
       run: |
           echo 'Setting domain IP'
-          sudo echo "52.200.206.217 fortify.cyberxdemo.com" | sudo tee -a /etc/hosts
+          sudo echo "54.152.73.219 fortify.cyberxdemo.com" | sudo tee -a /etc/hosts
           wget -nv https://github.com/fortify/FortifyVulnerabilityExporter/releases/download/v1.5.2/FortifyVulnerabilityExporter.zip
           mkdir -p $HOME/Fortify
           unzip FortifyVulnerabilityExporter.zip -d "$HOME/Fortify/"
